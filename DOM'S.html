@@ -1,0 +1,1971 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOM'S - نظام إدارة مخزن المطعم</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #e74c3c;
+            --accent-color: #3498db;
+            --light-color: #ecf0f1;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --dark-color: #2c3e50;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #2c3e50 0%, #4a6491 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .app-container {
+            width: 100%;
+            max-width: 1200px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .app-header {
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid var(--light-color);
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .logo-icon {
+            font-size: 32px;
+            color: #ffd700;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--light-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        nav {
+            background-color: var(--secondary-color);
+            padding: 10px;
+        }
+        
+        nav ul {
+            display: flex;
+            justify-content: space-around;
+            list-style: none;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        nav ul li a:hover, nav ul li a.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .app-body {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--accent-color);
+        }
+        
+        .card h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        
+        th {
+            background-color: var(--light-color);
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .low-stock {
+            background-color: #ffecb3 !important;
+        }
+        
+        .critical-stock {
+            background-color: #ffcdd2 !important;
+            color: #d32f2f;
+            font-weight: bold;
+        }
+        
+        .low-stock-table {
+            background-color: #fff;
+        }
+        
+        .low-stock-table tr.critical-stock {
+            background-color: #ffcdd2 !important;
+            color: #d32f2f;
+        }
+        
+        .low-stock-table tr.low-stock {
+            background-color: #ffecb3 !important;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--dark-color);
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-danger {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+        }
+        
+        .btn-success:hover {
+            background-color: #219a52;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning-color);
+        }
+        
+        .btn-warning:hover {
+            background-color: #e67e22;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #4a6491 100%);
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            color: white;
+        }
+        
+        .stat-card h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #ffd700;
+        }
+        
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border-top: 2px solid var(--light-color);
+        }
+        
+        .datetime-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .date-time-display {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .barcode-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .barcode-preview {
+            height: 60px;
+            background: white;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .employee-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-logo {
+            font-size: 36px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .login-title {
+            color: var(--dark-color);
+            font-size: 18px;
+        }
+        
+        .admin-panel {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 1px solid #ddd;
+        }
+        
+        .backup-section {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9f7ef;
+            border-radius: 8px;
+            border: 1px solid #27ae60;
+        }
+        
+        .print-button {
+            margin-top: 10px;
+            background-color: #7d3c98;
+        }
+        
+        .print-button:hover {
+            background-color: #6c3483;
+        }
+        
+        .search-container {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .login-button {
+            width: 100%;
+            margin-top: 15px;
+        }
+        
+        .admin-section-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .admin-subcard {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--warning-color);
+        }
+        
+        .admin-subcard h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .action-buttons button {
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .app-body {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr;
+            }
+            
+            nav ul {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            nav ul li {
+                margin-bottom: 10px;
+            }
+            
+            .datetime-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .employee-fields {
+                grid-template-columns: 1fr;
+            }
+            
+            .app-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .admin-section-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* طباعة التقارير */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .card, .card * {
+                visibility: visible;
+            }
+            .card {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                box-shadow: none;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="app-header">
+            <div class="logo-container">
+                <div class="logo-icon"><i class="fas fa-utensils"></i></div>
+                <div class="logo">DOM'S</div>
+                <div class="app-version">الإصدار 2.2</div>
+            </div>
+            <div class="user-info">
+                <div class="user-name">مسئول النظام</div>
+                <div class="user-avatar">م</div>
+                <button onclick="logout()" class="btn-danger"><i class="fas fa-sign-out-alt"></i> خروج</button>
+            </div>
+        </div>
+        
+        <nav>
+            <ul>
+                <li><a href="#" class="active" onclick="showSection('inventory')"><i class="fas fa-boxes"></i> المخزون الحالي</a></li>
+                <li><a href="#" onclick="showSection('add-product')"><i class="fas fa-plus-circle"></i> إضافة منتج</a></li>
+                <li><a href="#" onclick="showSection('movement')"><i class="fas fa-exchange-alt"></i> حركة المخزون</a></li>
+                <li><a href="#" onclick="showSection('reports')"><i class="fas fa-chart-bar"></i> التقارير</a></li>
+                <li><a href="#" onclick="showSection('transactions')"><i class="fas fa-file-invoice"></i> كشف المعاملات</a></li>
+                <li><a href="#" onclick="showSection('admin')"><i class="fas fa-cog"></i> الإدارة</a></li>
+            </ul>
+        </nav>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <h3>إجمالي المنتجات</h3>
+                <div class="value" id="total-products">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>منتجات منخفضة المخزون</h3>
+                <div class="value" id="low-stock-products">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>إجمالي قيمة المخزون</h3>
+                <div class="value" id="total-value">0 ج.م</div>
+            </div>
+        </div>
+        
+        <div class="app-body">
+            <div class="card" id="inventory-section">
+                <h2><i class="fas fa-boxes"></i> المخزون الحالي <span class="date-time-display">تاريخ اليوم: <span id="current-date"></span></span></h2>
+                <div class="search-container">
+                    <input type="text" id="inventory-search" class="search-input" placeholder="ابحث باسم المنتج أو الباركود..." oninput="filterInventory()">
+                    <button onclick="printSection('inventory-section')" class="print-button no-print"><i class="fas fa-print"></i> طباعة</button>
+                </div>
+                <table id="inventory-table">
+                    <thead>
+                        <tr>
+                            <th>الباركود</th>
+                            <th>اسم المنتج</th>
+                            <th>الكمية</th>
+                            <th>الوحدة</th>
+                            <th>السعر</th>
+                            <th>القيمة</th>
+                            <th>الحالة</th>
+                            <th>آخر حركة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- سيتم ملء هذا الجدول بالبيانات من JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="card" id="low-stock-section" style="display: none;">
+                <h2><i class="fas fa-exclamation-triangle"></i> المنتجات المنخفضة والمُنخفضة بشدة</h2>
+                <div class="search-container">
+                    <input type="text" id="low-stock-search" class="search-input" placeholder="ابحث في المنتجات المنخفضة..." oninput="filterLowStock()">
+                    <button onclick="printSection('low-stock-section')" class="print-button no-print"><i class="fas fa-print"></i> طباعة</button>
+                </div>
+                <table id="low-stock-table" class="low-stock-table">
+                    <thead>
+                        <tr>
+                            <th>الباركود</th>
+                            <th>اسم المنتج</th>
+                            <th>الكمية</th>
+                            <th>الحد الأدنى</th>
+                            <th>الوحدة</th>
+                            <th>الحالة</th>
+                            <th>الإجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- سيتم ملء هذا الجدول بالبيانات من JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="card" id="movement-section" style="display: none;">
+                <h2><i class="fas fa-exchange-alt"></i> حركة المخزون</h2>
+                <div class="form-group">
+                    <label for="movement-date">التاريخ والوقت:</label>
+                    <div class="datetime-group">
+                        <input type="date" id="movement-date" value="">
+                        <input type="time" id="movement-time" value="">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="movement-type">نوع الحركة:</label>
+                    <select id="movement-type">
+                        <option value="in">وارد</option>
+                        <option value="out">صادر</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="movement-product">المنتج:</label>
+                    <select id="movement-product">
+                        <!-- سيتم ملء هذا Select بالمنتجات من JavaScript -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="movement-quantity">الكمية:</label>
+                    <input type="number" id="movement-quantity" min="1">
+                </div>
+                <div class="employee-fields">
+                    <div class="form-group">
+                        <label for="storekeeper">أمين المخزن:</label>
+                        <select id="storekeeper">
+                            <!-- سيتم ملء هذا Select من JavaScript -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient">المستلم:</label>
+                        <input type="text" id="recipient" placeholder="اسم المستلم">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="shift-manager">مسئول الشيفت:</label>
+                    <select id="shift-manager">
+                        <!-- سيتم ملء هذا Select من JavaScript -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="movement-destination">الوجهة:</label>
+                    <input type="text" id="movement-destination" placeholder="المطبخ الرئيسي / الفرع الثاني">
+                </div>
+                <button class="btn-success" onclick="recordMovement()"><i class="fas fa-save"></i> تسجيل الحركة</button>
+                
+                <h3 style="margin-top: 20px;">آخر الحركات</h3>
+                <div class="search-container">
+                    <input type="text" id="movement-search" class="search-input" placeholder="ابحث باسم المنتج أو النوع..." oninput="filterMovement()">
+                    <button onclick="printSection('movement-section')" class="print-button no-print"><i class="fas fa-print"></i> طباعة</button>
+                </div>
+                <table id="movement-table">
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>الوقت</th>
+                            <th>المنتج</th>
+                            <th>النوع</th>
+                            <th>الكمية</th>
+                            <th>أمين المخزن</th>
+                            <th>المستلم</th>
+                            <th>مسئول الشيفت</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- سيتم ملء هذا الجدول بالبيانات من JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="card" id="add-product-section" style="display: none;">
+                <h2><i class="fas fa-plus-circle"></i> إضافة منتج جديد</h2>
+                <div class="form-group">
+                    <label for="product-name">اسم المنتج:</label>
+                    <input type="text" id="product-name" placeholder="أدخل اسم المنتج">
+                </div>
+                <div class="form-group">
+                    <label for="product-barcode">باركود المنتج:</label>
+                    <div class="barcode-container">
+                        <input type="text" id="product-barcode" placeholder="أدخل رقم الباركود">
+                        <button type="button" onclick="generateBarcode()"><i class="fas fa-barcode"></i> إنشاء باركود</button>
+                    </div>
+                    <div class="barcode-preview" id="barcode-preview"></div>
+                </div>
+                <div class="form-group">
+                    <label for="product-unit">الوحدة:</label>
+                    <select id="product-unit">
+                        <!-- سيتم ملء هذا Select من JavaScript -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="product-price">السعر:</label>
+                    <input type="number" id="product-price" min="0" step="0.01" placeholder="أدخل السعر">
+                </div>
+                <div class="form-group">
+                    <label for="product-quantity">الكمية الأولية:</label>
+                    <input type="number" id="product-quantity" min="0" placeholder="أدخل الكمية">
+                </div>
+                <div class="form-group">
+                    <label for="product-minimum">الحد الأدنى للمخزون:</label>
+                    <input type="number" id="product-minimum" min="0" placeholder="أدخل الحد الأدنى">
+                </div>
+                <button class="btn-success" onclick="addProduct()"><i class="fas fa-save"></i> إضافة المنتج</button>
+            </div>
+            
+            <div class="card" id="reports-section" style="display: none;">
+                <h2><i class="fas fa-chart-bar"></i> تقارير المخزون حسب التاريخ</h2>
+                <div class="form-group">
+                    <label for="report-start-date">من تاريخ:</label>
+                    <input type="date" id="report-start-date">
+                </div>
+                <div class="form-group">
+                    <label for="report-end-date">إلى تاريخ:</label>
+                    <input type="date" id="report-end-date">
+                </div>
+                <div class="form-group">
+                    <label for="report-type">نوع التقرير:</label>
+                    <select id="report-type" onchange="generateReport()">
+                        <option value="low-stock">المنتجات المنخفضة المخزون</option>
+                        <option value="movement-period">حركة الفترة</option>
+                        <option value="valuable-products">أعلى المنتجات قيمة</option>
+                    </select>
+                </div>
+                <button class="btn-success" onclick="generateReport()"><i class="fas fa-file-pdf"></i> إنشاء التقرير</button>
+                <button onclick="printSection('report-results')" class="print-button no-print"><i class="fas fa-print"></i> طباعة التقرير</button>
+                
+                <div id="report-results">
+                    <!-- سيتم عرض نتائج التقرير هنا -->
+                </div>
+            </div>
+            
+            <div class="card" id="transactions-section" style="display: none;">
+                <h2><i class="fas fa-file-invoice"></i> كشف المعاملات حسب التاريخ</h2>
+                <div class="form-group">
+                    <label for="transactions-date">اختر التاريخ:</label>
+                    <input type="date" id="transactions-date">
+                </div>
+                <button class="btn-success" onclick="showTransactions()"><i class="fas fa-search"></i> عرض المعاملات</button>
+                <button onclick="printSection('transactions-section')" class="print-button no-print"><i class="fas fa-print"></i> طباعة</button>
+                
+                <h3 style="margin-top: 20px;">المعاملات</h3>
+                <table id="transactions-table">
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>الوقت</th>
+                            <th>المنتج</th>
+                            <th>النوع</th>
+                            <th>الكمية</th>
+                            <th>أمين المخزن</th>
+                            <th>المستلم</th>
+                            <th>مسئول الشيفت</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- سيتم ملء هذا الجدول بالبيانات من JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="card" id="admin-section" style="display: none;">
+                <h2><i class="fas fa-cog"></i> لوحة الإدارة المتكاملة</h2>
+                
+                <div class="admin-section-grid">
+                    <div>
+                        <div class="admin-panel">
+                            <h3><i class="fas fa-users-cog"></i> إدارة المستخدمين</h3>
+                            <div class="form-group">
+                                <label for="new-username">اسم المستخدم الجديد:</label>
+                                <input type="text" id="new-username" placeholder="أدخل اسم المستخدم">
+                            </div>
+                            <div class="form-group">
+                                <label for="new-password">كلمة المرور:</label>
+                                <input type="password" id="new-password" placeholder="أدخل كلمة المرور">
+                            </div>
+                            <div class="form-group">
+                                <label for="user-role">صلاحية المستخدم:</label>
+                                <select id="user-role">
+                                    <option value="admin">مدير النظام</option>
+                                    <option value="storekeeper">أمين المخزن</option>
+                                    <option value="viewer">مشاهد</option>
+                                </select>
+                            </div>
+                            <button class="btn-success" onclick="addUser()"><i class="fas fa-user-plus"></i> إضافة مستخدم</button>
+                            
+                            <h4 style="margin-top: 20px;">المستخدمون الحاليون</h4>
+                            <table id="users-table">
+                                <thead>
+                                    <tr>
+                                        <th>اسم المستخدم</th>
+                                        <th>الصلاحية</th>
+                                        <th>الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- سيتم ملء هذا الجدول بالبيانات من JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="admin-panel">
+                            <h3><i class="fas fa-user-tie"></i> إدارة أمناء المخزن</h3>
+                            <div class="form-group">
+                                <label for="new-storekeeper">اسم أمين المخزن الجديد:</label>
+                                <input type="text" id="new-storekeeper" placeholder="أدخل اسم أمين المخزن">
+                            </div>
+                            <button class="btn-success" onclick="addStorekeeper()"><i class="fas fa-plus"></i> إضافة أمين مخزن</button>
+                            
+                            <h4 style="margin-top: 20px;">أمناء المخزن الحاليون</h4>
+                            <table id="storekeepers-table">
+                                <thead>
+                                    <tr>
+                                        <th>الاسم</th>
+                                        <th>الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- سيتم ملء هذا الجدول بالبيانات من JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="admin-panel">
+                            <h3><i class="fas fa-user-shield"></i> إدارة مسؤولي الشيفت</h3>
+                            <div class="form-group">
+                                <label for="new-shift-manager">اسم مسؤول الشيفت الجديد:</label>
+                                <input type="text" id="new-shift-manager" placeholder="أدخل اسم مسؤول الشيفت">
+                            </div>
+                            <button class="btn-success" onclick="addShiftManager()"><i class="fas fa-plus"></i> إضافة مسؤول شيفت</button>
+                            
+                            <h4 style="margin-top: 20px;">مسؤولي الشيفت الحاليون</h4>
+                            <table id="shift-managers-table">
+                                <thead>
+                                    <tr>
+                                        <th>الاسم</th>
+                                        <th>الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- سيتم ملء هذا الجدول بالبيانات من JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="admin-panel">
+                            <h3><i class="fas fa-balance-scale"></i> إدارة الوحدات</h3>
+                            <div class="form-group">
+                                <label for="new-unit">اسم الوحدة الجديدة:</label>
+                                <input type="text" id="new-unit" placeholder="أدخل اسم الوحدة">
+                            </div>
+                            <button class="btn-success" onclick="addUnit()"><i class="fas fa-plus"></i> إضافة وحدة</button>
+                            
+                            <h4 style="margin-top: 20px;">الوحدات المتاحة</h4>
+                            <table id="units-table">
+                                <thead>
+                                    <tr>
+                                        <th>الاسم</th>
+                                        <th>الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- سيتم ملء هذا الجدول بالبيانات من JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="backup-section">
+                            <h3><i class="fas fa-database"></i> النسخ الاحتياطي</h3>
+                            <p>قم بعمل نسخة احتياطية من البيانات أو استرجاعها من نسخة سابقة</p>
+                            <button class="btn-success" onclick="backupData()"><i class="fas fa-download"></i> نسخ احتياطي</button>
+                            <button class="btn-danger" onclick="restoreData()"><i class="fas fa-upload"></i> استرجاع</button>
+                            <input type="file" id="restore-file" accept=".json" style="display: none;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>نظام إدارة مخزن المطعم DOM'S &copy; 2023 - جميع الحقوق محفوظة</p>
+        </footer>
+    </div>
+
+    <script>
+        // بيانات التخزين
+        let products = JSON.parse(localStorage.getItem('restaurantProducts')) || [];
+        let movements = JSON.parse(localStorage.getItem('restaurantMovements')) || [];
+        let users = JSON.parse(localStorage.getItem('restaurantUsers')) || [
+            { username: "admin", password: "admin123", role: "admin" }
+        ];
+        let storekeepers = JSON.parse(localStorage.getItem('restaurantStorekeepers')) || [
+            "محمد أحمد", "أحمد علي", "محمود سعيد", "خالد مصطفى"
+        ];
+        let shiftManagers = JSON.parse(localStorage.getItem('restaurantShiftManagers')) || [
+            "عمرو عبد الله", "ياسر محمد", "طارق حسين", "سامح كمال"
+        ];
+        let units = JSON.parse(localStorage.getItem('restaurantUnits')) || [
+            "كجم", "جم", "لتر", "علبة", "كرتونة", "وحدة"
+        ];
+        
+        let currentUser = null;
+        
+        // عناصر DOM
+        const inventoryTable = document.getElementById('inventory-table');
+        const lowStockTable = document.getElementById('low-stock-table');
+        const movementTable = document.getElementById('movement-table');
+        const transactionsTable = document.getElementById('transactions-table');
+        const usersTable = document.getElementById('users-table');
+        const storekeepersTable = document.getElementById('storekeepers-table');
+        const shiftManagersTable = document.getElementById('shift-managers-table');
+        const unitsTable = document.getElementById('units-table');
+        const movementProductSelect = document.getElementById('movement-product');
+        const storekeeperSelect = document.getElementById('storekeeper');
+        const shiftManagerSelect = document.getElementById('shift-manager');
+        const productUnitSelect = document.getElementById('product-unit');
+        const totalProductsEl = document.getElementById('total-products');
+        const lowStockProductsEl = document.getElementById('low-stock-products');
+        const totalValueEl = document.getElementById('total-value');
+        const currentDateEl = document.getElementById('current-date');
+        const barcodePreview = document.getElementById('barcode-preview');
+        
+        // تهيئة الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            // التحقق من تسجيل الدخول
+            checkLogin();
+            
+            // تعيين التاريخ الحالي
+            const now = new Date();
+            const today = now.toISOString().split('T')[0];
+            const time = now.toTimeString().substring(0, 5);
+            
+            document.getElementById('movement-date').value = today;
+            document.getElementById('movement-time').value = time;
+            document.getElementById('report-start-date').value = today;
+            document.getElementById('report-end-date').value = today;
+            document.getElementById('transactions-date').value = today;
+            
+            currentDateEl.textContent = formatDateWithTime(now);
+            
+            updateInventoryTable();
+            updateLowStockTable();
+            updateMovementTable();
+            updateStats();
+            populateProductSelect();
+            populateStorekeeperSelect();
+            populateShiftManagerSelect();
+            populateUnitSelect();
+            updateUsersTable();
+            updateStorekeepersTable();
+            updateShiftManagersTable();
+            updateUnitsTable();
+        });
+        
+        // التحقق من تسجيل الدخول
+        function checkLogin() {
+            currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+            if (!currentUser) {
+                // إذا لم يكن المستخدم مسجلاً، توجيه إلى صفحة تسجيل الدخول
+                showLogin();
+                return false;
+            }
+            return true;
+        }
+        
+        // عرض صفحة تسجيل الدخول
+        function showLogin() {
+            const loginHTML = `
+                <div class="login-container">
+                    <div class="login-header">
+                        <div class="login-logo">
+                            <i class="fas fa-utensils"></i> DOM'S
+                        </div>
+                        <div class="login-title">نظام إدارة مخزن المطعم</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-username">اسم المستخدم:</label>
+                        <input type="text" id="login-username" placeholder="أدخل اسم المستخدم">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">كلمة المرور:</label>
+                        <input type="password" id="login-password" placeholder="أدخل كلمة المرور">
+                    </div>
+                    <button class="btn-success login-button" onclick="login()"><i class="fas fa-sign-in-alt"></i> تسجيل الدخول</button>
+                </div>
+            `;
+            document.body.innerHTML = loginHTML;
+        }
+        
+        // تسجيل الدخول
+        function login() {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            
+            const user = users.find(u => u.username === username && u.password === password);
+            
+            if (user) {
+                currentUser = user;
+                sessionStorage.setItem('currentUser', JSON.stringify(user));
+                location.reload();
+            } else {
+                alert('اسم المستخدم أو كلمة المرور غير صحيحة');
+            }
+        }
+        
+        // تسجيل الخروج
+        function logout() {
+            sessionStorage.removeItem('currentUser');
+            currentUser = null;
+            location.reload();
+        }
+        
+        // إنشاء باركود
+        function generateBarcode() {
+            const barcodeInput = document.getElementById('product-barcode');
+            let barcodeValue = barcodeInput.value.trim();
+            
+            if (!barcodeValue) {
+                // إنشاء باركود عشوائي إذا لم يتم إدخال قيمة
+                barcodeValue = Math.floor(1000000000000 + Math.random() * 9000000000000).toString();
+                barcodeInput.value = barcodeValue;
+            }
+            
+            // إنشاء الباركود
+            JsBarcode(barcodePreview, barcodeValue, {
+                format: "CODE128",
+                displayValue: true,
+                fontSize: 16,
+                height: 40
+            });
+        }
+        
+        // تحديث جدول المخزون
+        function updateInventoryTable() {
+            const tbody = inventoryTable.querySelector('tbody');
+            tbody.innerHTML = '';
+            
+            products.forEach(product => {
+                const row = document.createElement('tr');
+                
+                // تحديد فئة المخزون
+                if (product.quantity < product.minimum * 0.3) {
+                    row.classList.add('critical-stock');
+                } else if (product.quantity < product.minimum) {
+                    row.classList.add('low-stock');
+                }
+                
+                const status = product.quantity < product.minimum ? 
+                              (product.quantity < product.minimum * 0.3 ? 'ناقص بشدة' : 'ناقص') : 
+                              'كافي';
+                
+                // البحث عن آخر حركة لهذا المنتج
+                const lastMovement = movements
+                    .filter(m => m.productId === product.id)
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+                
+                let lastMovementDate = 'لا توجد حركات';
+                if (lastMovement) {
+                    const date = new Date(lastMovement.date);
+                    lastMovementDate = formatDateWithTime(date);
+                }
+                
+                row.innerHTML = `
+                    <td>${product.barcode}</td>
+                    <td>${product.name}</td>
+                    <td>${product.quantity}</td>
+                    <td>${product.unit}</td>
+                    <td>${product.price.toFixed(2)} ج.م</td>
+                    <td>${(product.quantity * product.price).toFixed(2)} ج.م</td>
+                    <td>${status}</td>
+                    <td>${lastMovementDate}</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // تحديث جدول المنتجات المنخفضة
+        function updateLowStockTable() {
+            const tbody = lowStockTable.querySelector('tbody');
+            tbody.innerHTML = '';
+            
+            const lowStockProducts = products.filter(p => p.quantity < p.minimum);
+            
+            if (lowStockProducts.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7">لا توجد منتجات منخفضة المخزون</td></tr>';
+                return;
+            }
+            
+            lowStockProducts.forEach(product => {
+                const row = document.createElement('tr');
+                
+                // تحديد فئة المخزون
+                if (product.quantity < product.minimum * 0.3) {
+                    row.classList.add('critical-stock');
+                } else {
+                    row.classList.add('low-stock');
+                }
+                
+                const status = product.quantity < product.minimum * 0.3 ? 'ناقص بشدة' : 'ناقص';
+                
+                row.innerHTML = `
+                    <td>${product.barcode}</td>
+                    <td>${product.name}</td>
+                    <td>${product.quantity}</td>
+                    <td>${product.minimum}</td>
+                    <td>${product.unit}</td>
+                    <td>${status}</td>
+                    <td>
+                        <button class="btn-success" onclick="addStock(${product.id})"><i class="fas fa-plus"></i> إضافة مخزون</button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // إضافة مخزون لمنتج منخفض
+        function addStock(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            const quantity = prompt(`أدخل الكمية المراد إضافتها للمنتج ${product.name}:`, "10");
+            if (!quantity || isNaN(quantity) || parseInt(quantity) <= 0) {
+                alert('يرجى إدخال كمية صحيحة');
+                return;
+            }
+            
+            product.quantity += parseInt(quantity);
+            saveData();
+            
+            // تسجيل حركة الوارد
+            const now = new Date();
+            const movement = {
+                date: now.toISOString(),
+                type: 'in',
+                productId: product.id,
+                productName: product.name,
+                quantity: parseInt(quantity),
+                unit: product.unit,
+                storekeeper: storekeepers[0] || "مسئول النظام",
+                recipient: 'المخزن الرئيسي',
+                shiftManager: shiftManagers[0] || "مسئول النظام",
+                destination: 'تعبئة مخزون'
+            };
+            
+            movements.push(movement);
+            saveData();
+            
+            updateInventoryTable();
+            updateLowStockTable();
+            updateStats();
+            populateProductSelect();
+            
+            alert(`تم إضافة ${quantity} ${product.unit} إلى ${product.name}`);
+        }
+        
+        // تصفية جدول المخزون
+        function filterInventory() {
+            const searchText = document.getElementById('inventory-search').value.toLowerCase();
+            const rows = inventoryTable.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const productName = row.cells[1].textContent.toLowerCase();
+                const barcode = row.cells[0].textContent.toLowerCase();
+                
+                if (productName.includes(searchText) || barcode.includes(searchText)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        // تصفية جدول المنتجات المنخفضة
+        function filterLowStock() {
+            const searchText = document.getElementById('low-stock-search').value.toLowerCase();
+            const rows = lowStockTable.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                if (row.cells[1]) {
+                    const productName = row.cells[1].textContent.toLowerCase();
+                    if (productName.includes(searchText)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+        }
+        
+        // تحديث جدول الحركة
+        function updateMovementTable() {
+            const tbody = movementTable.querySelector('tbody');
+            tbody.innerHTML = '';
+            
+            // عرض آخر 10 حركات فقط
+            const recentMovements = movements.slice(-10);
+            
+            recentMovements.forEach(movement => {
+                const row = document.createElement('tr');
+                const date = new Date(movement.date);
+                const formattedDate = formatDate(date);
+                const formattedTime = formatTime(date);
+                
+                row.innerHTML = `
+                    <td>${formattedDate}</td>
+                    <td>${formattedTime}</td>
+                    <td>${movement.productName}</td>
+                    <td>${movement.type === 'in' ? 'وارد' : 'صادر'}</td>
+                    <td>${movement.quantity} ${movement.unit}</td>
+                    <td>${movement.storekeeper}</td>
+                    <td>${movement.recipient || '-'}</td>
+                    <td>${movement.shiftManager}</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // تصفية جدول الحركة
+        function filterMovement() {
+            const searchText = document.getElementById('movement-search').value.toLowerCase();
+            const rows = movementTable.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const productName = row.cells[2].textContent.toLowerCase();
+                const movementType = row.cells[3].textContent.toLowerCase();
+                
+                if (productName.includes(searchText) || movementType.includes(searchText)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        // تحديث جدول المستخدمين
+        function updateUsersTable() {
+            const tbody = usersTable.querySelector('tbody');
+            tbody.innerHTML = '';
+            
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${user.username}</td>
+                    <td>${user.role === 'admin' ? 'مدير النظام' : user.role === 'storekeeper' ? 'أمين المخزن' : 'مشاهد'}</td>
+                    <td>
+                        <button class="btn-danger" onclick="deleteUser('${user.username}')" ${user.username === 'admin' ? 'disabled' : ''}><i class="fas fa-trash"></i> حذف</button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // تحديث جدول أمناء المخزن
+        function updateStorekeepersTable() {
+            const tbody = storekeepersTable.querySelector('tbody');
+            tbody.innerHTML = '';
+            
+            storekeepers.forEach((storekeeper, index) => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${storekeeper}</td>
+                    <td class="action-buttons">
+                        <button class="btn-warning" onclick="editStorekeeper(${index})"><i class="fas fa-edit"></i> تعديل</button>
+                        <button class="btn-danger" onclick="deleteStorekeeper(${index})" ${storekeeper === "مسئول النظام" ? 'disabled' : ''}><i class="fas fa-trash"></i> حذف</button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // تحديث جدول مسؤولي الشيفت
+        function updateShiftManagersTable() {
+            const tbody = shiftManagersTable.querySelector('tbody');
+            tbody.innerHTML = '';
+            
+            shiftManagers.forEach((manager, index) => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${manager}</td>
+                    <td class="action-buttons">
+                        <button class="btn-warning" onclick="editShiftManager(${index})"><i class="fas fa-edit"></i> تعديل</button>
+                        <button class="btn-danger" onclick="deleteShiftManager(${index})" ${manager === "مسئول النظام" ? 'disabled' : ''}><i class="fas fa-trash"></i> حذف</button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // تحديث جدول الوحدات
+        function updateUnitsTable() {
+            const tbody = unitsTable.querySelector('tbody');
+            tbody.innerHTML = '';
+            
+            units.forEach((unit, index) => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${unit}</td>
+                    <td class="action-buttons">
+                        <button class="btn-warning" onclick="editUnit(${index})"><i class="fas fa-edit"></i> تعديل</button>
+                        <button class="btn-danger" onclick="deleteUnit(${index})"><i class="fas fa-trash"></i> حذف</button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // تحديث الإحصائيات
+        function updateStats() {
+            totalProductsEl.textContent = products.length;
+            
+            const lowStockCount = products.filter(p => p.quantity < p.minimum).length;
+            lowStockProductsEl.textContent = lowStockCount;
+            
+            const totalValue = products.reduce((sum, product) => sum + (product.quantity * product.price), 0);
+            totalValueEl.textContent = totalValue.toFixed(2) + ' ج.م';
+        }
+        
+        // تعبئة قائمة المنتجات في select
+        function populateProductSelect() {
+            movementProductSelect.innerHTML = '';
+            
+            products.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.id;
+                option.textContent = `${product.name} (${product.quantity} ${product.unit})`;
+                movementProductSelect.appendChild(option);
+            });
+        }
+        
+        // تعبئة قائمة أمناء المخزن
+        function populateStorekeeperSelect() {
+            storekeeperSelect.innerHTML = '';
+            
+            storekeepers.forEach(storekeeper => {
+                const option = document.createElement('option');
+                option.value = storekeeper;
+                option.textContent = storekeeper;
+                storekeeperSelect.appendChild(option);
+            });
+        }
+        
+        // تعبئة قائمة مسؤولي الشيفت
+        function populateShiftManagerSelect() {
+            shiftManagerSelect.innerHTML = '';
+            
+            shiftManagers.forEach(manager => {
+                const option = document.createElement('option');
+                option.value = manager;
+                option.textContent = manager;
+                shiftManagerSelect.appendChild(option);
+            });
+        }
+        
+        // تعبئة قائمة الوحدات
+        function populateUnitSelect() {
+            productUnitSelect.innerHTML = '';
+            
+            units.forEach(unit => {
+                const option = document.createElement('option');
+                option.value = unit;
+                option.textContent = unit;
+                productUnitSelect.appendChild(option);
+            });
+        }
+        
+        // إضافة منتج جديد
+        function addProduct() {
+            const name = document.getElementById('product-name').value;
+            const barcode = document.getElementById('product-barcode').value;
+            const unit = document.getElementById('product-unit').value;
+            const price = parseFloat(document.getElementById('product-price').value);
+            const quantity = parseInt(document.getElementById('product-quantity').value);
+            const minimum = parseInt(document.getElementById('product-minimum').value);
+            
+            if (!name || !barcode || isNaN(price) || isNaN(quantity) || isNaN(minimum)) {
+                alert('يرجى ملء جميع الحقول بشكل صحيح');
+                return;
+            }
+            
+            // التحقق من عدم تكرار الباركود
+            if (products.some(p => p.barcode === barcode)) {
+                alert('رقم الباركود مستخدم بالفعل لمنتج آخر');
+                return;
+            }
+            
+            const newProduct = {
+                id: Date.now(),
+                name,
+                barcode,
+                unit,
+                price,
+                quantity,
+                minimum
+            };
+            
+            products.push(newProduct);
+            saveData();
+            
+            // تسجيل حركة الوارد للمخزون الأولي
+            const now = new Date();
+            const movement = {
+                date: now.toISOString(),
+                type: 'in',
+                productId: newProduct.id,
+                productName: newProduct.name,
+                quantity: newProduct.quantity,
+                unit: newProduct.unit,
+                storekeeper: storekeepers[0] || "مسئول النظام",
+                recipient: 'المخزن الرئيسي',
+                shiftManager: shiftManagers[0] || "مسئول النظام",
+                destination: 'المخزن الرئيسي'
+            };
+            
+            movements.push(movement);
+            saveData();
+            
+            // إعادة تعيين الحقول
+            document.getElementById('product-name').value = '';
+            document.getElementById('product-barcode').value = '';
+            document.getElementById('product-price').value = '';
+            document.getElementById('product-quantity').value = '';
+            document.getElementById('product-minimum').value = '';
+            barcodePreview.innerHTML = '';
+            
+            // تحديث الواجهة
+            updateInventoryTable();
+            updateLowStockTable();
+            updateMovementTable();
+            updateStats();
+            populateProductSelect();
+            
+            alert('تم إضافة المنتج بنجاح');
+        }
+        
+        // تسجيل حركة المخزون
+        function recordMovement() {
+            const movementDate = document.getElementById('movement-date').value;
+            const movementTime = document.getElementById('movement-time').value;
+            const type = document.getElementById('movement-type').value;
+            const productId = parseInt(movementProductSelect.value);
+            const quantity = parseInt(document.getElementById('movement-quantity').value);
+            const storekeeper = document.getElementById('storekeeper').value;
+            const recipient = document.getElementById('recipient').value;
+            const shiftManager = document.getElementById('shift-manager').value;
+            const destination = document.getElementById('movement-destination').value;
+            
+            if (!productId || isNaN(quantity) || quantity <= 0 || !storekeeper || !shiftManager) {
+                alert('يرجى ملء جميع الحقول الإلزامية');
+                return;
+            }
+            
+            const product = products.find(p => p.id === productId);
+            
+            if (!product) {
+                alert('المنتج غير موجود');
+                return;
+            }
+            
+            if (type === 'out' && product.quantity < quantity) {
+                alert('الكمية المتاحة غير كافية');
+                return;
+            }
+            
+            // تحديث كمية المنتج
+            if (type === 'in') {
+                product.quantity += quantity;
+            } else {
+                product.quantity -= quantity;
+            }
+            
+            // إنشاء تاريخ من دمج التاريخ والوقت
+            const dateTime = new Date(movementDate + 'T' + movementTime);
+            
+            // تسجيل الحركة
+            const movement = {
+                date: dateTime.toISOString(),
+                type,
+                productId: product.id,
+                productName: product.name,
+                quantity,
+                unit: product.unit,
+                storekeeper,
+                recipient: type === 'out' ? recipient : 'المخزن',
+                shiftManager,
+                destination
+            };
+            
+            movements.push(movement);
+            saveData();
+            
+            // إعادة تعيين الحقول
+            document.getElementById('movement-quantity').value = '';
+            document.getElementById('recipient').value = '';
+            document.getElementById('movement-destination').value = '';
+            
+            // تحديث الواجهة
+            updateInventoryTable();
+            updateLowStockTable();
+            updateMovementTable();
+            updateStats();
+            populateProductSelect();
+            
+            alert('تم تسجيل الحركة بنجاح');
+        }
+        
+        // إضافة مستخدم جديد
+        function addUser() {
+            if (currentUser.role !== 'admin') {
+                alert('فقط مدير النظام يمكنه إضافة مستخدمين');
+                return;
+            }
+            
+            const username = document.getElementById('new-username').value;
+            const password = document.getElementById('new-password').value;
+            const role = document.getElementById('user-role').value;
+            
+            if (!username || !password) {
+                alert('يرجى ملء جميع الحقول');
+                return;
+            }
+            
+            if (users.some(u => u.username === username)) {
+                alert('اسم المستخدم موجود بالفعل');
+                return;
+            }
+            
+            users.push({ username, password, role });
+            saveData();
+            updateUsersTable();
+            
+            // إعادة تعيين الحقول
+            document.getElementById('new-username').value = '';
+            document.getElementById('new-password').value = '';
+            
+            alert('تم إضافة المستخدم بنجاح');
+        }
+        
+        // حذف مستخدم
+        function deleteUser(username) {
+            if (currentUser.role !== 'admin') {
+                alert('فقط مدير النظام يمكنه حذف المستخدمين');
+                return;
+            }
+            
+            if (username === 'admin') {
+                alert('لا يمكن حذف حساب المدير الرئيسي');
+                return;
+            }
+            
+            if (confirm(`هل أنت متأكد من حذف المستخدم ${username}؟`)) {
+                users = users.filter(u => u.username !== username);
+                saveData();
+                updateUsersTable();
+                alert('تم حذف المستخدم بنجاح');
+            }
+        }
+        
+        // إضافة أمين مخزن جديد
+        function addStorekeeper() {
+            const name = document.getElementById('new-storekeeper').value;
+            
+            if (!name) {
+                alert('يرجى إدخال اسم أمين المخزن');
+                return;
+            }
+            
+            if (storekeepers.includes(name)) {
+                alert('أمين المخزن موجود بالفعل');
+                return;
+            }
+            
+            storekeepers.push(name);
+            saveData();
+            updateStorekeepersTable();
+            populateStorekeeperSelect();
+            
+            document.getElementById('new-storekeeper').value = '';
+            alert('تم إضافة أمين المخزن بنجاح');
+        }
+        
+        // تعديل أمين مخزن
+        function editStorekeeper(index) {
+            const newName = prompt('أدخل الاسم الجديد لأمين المخزن:', storekeepers[index]);
+            
+            if (newName && newName.trim() !== '') {
+                storekeepers[index] = newName;
+                saveData();
+                updateStorekeepersTable();
+                populateStorekeeperSelect();
+                alert('تم تعديل أمين المخزن بنجاح');
+            }
+        }
+        
+        // حذف أمين مخزن
+        function deleteStorekeeper(index) {
+            if (confirm(`هل أنت متأكد من حذف ${storekeepers[index]}؟`)) {
+                storekeepers.splice(index, 1);
+                saveData();
+                updateStorekeepersTable();
+                populateStorekeeperSelect();
+                alert('تم حذف أمين المخزن بنجاح');
+            }
+        }
+        
+        // إضافة مسؤول شيفت جديد
+        function addShiftManager() {
+            const name = document.getElementById('new-shift-manager').value;
+            
+            if (!name) {
+                alert('يرجى إدخال اسم مسؤول الشيفت');
+                return;
+            }
+            
+            if (shiftManagers.includes(name)) {
+                alert('مسؤول الشيفت موجود بالفعل');
+                return;
+            }
+            
+            shiftManagers.push(name);
+            saveData();
+            updateShiftManagersTable();
+            populateShiftManagerSelect();
+            
+            document.getElementById('new-shift-manager').value = '';
+            alert('تم إضافة مسؤول الشيفت بنجاح');
+        }
+        
+        // تعديل مسؤول شيفت
+        function editShiftManager(index) {
+            const newName = prompt('أدخل الاسم الجديد لمسؤول الشيفت:', shiftManagers[index]);
+            
+            if (newName && newName.trim() !== '') {
+                shiftManagers[index] = newName;
+                saveData();
+                updateShiftManagersTable();
+                populateShiftManagerSelect();
+                alert('تم تعديل مسؤول الشيفت بنجاح');
+            }
+        }
+        
+        // حذف مسؤول شيفت
+        function deleteShiftManager(index) {
+            if (confirm(`هل أنت متأكد من حذف ${shiftManagers[index]}؟`)) {
+                shiftManagers.splice(index, 1);
+                saveData();
+                updateShiftManagersTable();
+                populateShiftManagerSelect();
+                alert('تم حذف مسؤول الشيفت بنجاح');
+            }
+        }
+        
+        // إضافة وحدة جديدة
+        function addUnit() {
+            const unit = document.getElementById('new-unit').value;
+            
+            if (!unit) {
+                alert('يرجى إدخال اسم الوحدة');
+                return;
+            }
+            
+            if (units.includes(unit)) {
+                alert('الوحدة موجودة بالفعل');
+                return;
+            }
+            
+            units.push(unit);
+            saveData();
+            updateUnitsTable();
+            populateUnitSelect();
+            
+            document.getElementById('new-unit').value = '';
+            alert('تم إضافة الوحدة بنجاح');
+        }
+        
+        // تعديل وحدة
+        function editUnit(index) {
+            const newUnit = prompt('أدخل الاسم الجديد للوحدة:', units[index]);
+            
+            if (newUnit && newUnit.trim() !== '') {
+                units[index] = newUnit;
+                saveData();
+                updateUnitsTable();
+                populateUnitSelect();
+                alert('تم تعديل الوحدة بنجاح');
+            }
+        }
+        
+        // حذف وحدة
+        function deleteUnit(index) {
+            if (confirm(`هل أنت متأكد من حذف ${units[index]}؟`)) {
+                // التحقق من عدم استخدام الوحدة في أي منتج
+                const isUsed = products.some(p => p.unit === units[index]);
+                
+                if (isUsed) {
+                    alert('لا يمكن حذف هذه الوحدة لأنها مستخدمة في بعض المنتجات');
+                    return;
+                }
+                
+                units.splice(index, 1);
+                saveData();
+                updateUnitsTable();
+                populateUnitSelect();
+                alert('تم حذف الوحدة بنجاح');
+            }
+        }
+        
+        // نسخ احتياطي للبيانات
+        function backupData() {
+            const data = {
+                products,
+                movements,
+                users,
+                storekeepers,
+                shiftManagers,
+                units,
+                backupDate: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(data);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `doms-backup-${new Date().toISOString().split('T')[0]}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            alert('تم النسخ الاحتياطي بنجاح');
+        }
+        
+        // استرجاع البيانات
+        function restoreData() {
+            document.getElementById('restore-file').click();
+        }
+        
+        // معالجة استرجاع البيانات عند اختيار ملف
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('restore-file').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        
+                        if (confirm('سيؤدي الاسترجاع إلى استبدال جميع البيانات الحالية. هل تريد المتابعة؟')) {
+                            products = data.products || [];
+                            movements = data.movements || [];
+                            users = data.users || [{ username: "admin", password: "admin123", role: "admin" }];
+                            storekeepers = data.storekeepers || ["محمد أحمد", "أحمد علي", "محمود سعيد", "خالد مصطفى"];
+                            shiftManagers = data.shiftManagers || ["عمرو عبد الله", "ياسر محمد", "طارق حسين", "سامح كمال"];
+                            units = data.units || ["كجم", "جم", "لتر", "علبة", "كرتونة", "وحدة"];
+                            
+                            saveData();
+                            location.reload();
+                            alert('تم استرجاع البيانات بنجاح');
+                        }
+                    } catch (error) {
+                        alert('صيغة الملف غير صحيحة');
+                    }
+                };
+                reader.readAsText(file);
+            });
+        });
+        
+        // طباعة قسم معين
+        function printSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html dir="rtl">
+                <head>
+                    <title>طباعة - DOM'S</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; }
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+                        table, th, td { border: 1px solid #ddd; }
+                        th, td { padding: 8px; text-align: center; }
+                        th { background-color: #f2f2f2; }
+                        h2 { color: #2c3e50; }
+                        .low-stock { background-color: #ffecb3 !important; }
+                        .critical-stock { background-color: #ffcdd2 !important; color: #d32f2f; }
+                    </style>
+                </head>
+                <body>
+                    <h2>نظام إدارة مخزن المطعم DOM'S</h2>
+                    ${section.innerHTML}
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+        
+        // توليد التقارير
+        function generateReport() {
+            const reportType = document.getElementById('report-type').value;
+            const startDate = new Date(document.getElementById('report-start-date').value);
+            const endDate = new Date(document.getElementById('report-end-date').value);
+            endDate.setHours(23, 59, 59); // حتى نهاية اليوم
+            
+            const reportResults = document.getElementById('report-results');
+            
+            let html = '<h3>نتيجة التقرير</h3>';
+            
+            if (reportType === 'low-stock') {
+                const lowStockProducts = products.filter(p => p.quantity < p.minimum);
+                
+                if (lowStockProducts.length === 0) {
+                    html += '<p>لا توجد منتجات منخفضة المخزون</p>';
+                } else {
+                    html += '<table class="low-stock-table"><thead><tr><th>المنتج</th><th>الكمية المتاحة</th><th>الحد الأدنى</th><th>الحالة</th></tr></thead><tbody>';
+                    
+                    lowStockProducts.forEach(product => {
+                        const status = product.quantity < product.minimum * 0.3 ? 'ناقص بشدة' : 'ناقص';
+                        html += `<tr class="${status === 'ناقص بشدة' ? 'critical-stock' : 'low-stock'}">
+                            <td>${product.name}</td>
+                            <td>${product.quantity} ${product.unit}</td>
+                            <td>${product.minimum} ${product.unit}</td>
+                            <td>${status}</td>
+                        </tr>`;
+                    });
+                    
+                    html += '</tbody></table>';
+                }
+            } else if (reportType === 'movement-period') {
+                const periodMovements = movements.filter(m => {
+                    const movementDate = new Date(m.date);
+                    return movementDate >= startDate && movementDate <= endDate;
+                });
+                
+                if (periodMovements.length === 0) {
+                    html += '<p>لا توجد حركات في الفترة المحددة</p>';
+                } else {
+                    html += `<p>حركة المخزون من ${formatDate(startDate)} إلى ${formatDate(endDate)}</p>`;
+                    html += '<table><thead><tr><th>التاريخ</th><th>الوقت</th><th>المنتج</th><th>النوع</th><th>الكمية</th><th>أمين المخزن</th><th>المستلم</th></tr></thead><tbody>';
+                    
+                    periodMovements.forEach(movement => {
+                        const date = new Date(movement.date);
+                        html += `<tr>
+                            <td>${formatDate(date)}</td>
+                            <td>${formatTime(date)}</td>
+                            <td>${movement.productName}</td>
+                            <td>${movement.type === 'in' ? 'وارد' : 'صادر'}</td>
+                            <td>${movement.quantity} ${movement.unit}</td>
+                            <td>${movement.storekeeper}</td>
+                            <td>${movement.recipient || '-'}</td>
+                        </tr>`;
+                    });
+                    
+                    html += '</tbody></table>';
+                }
+            } else if (reportType === 'valuable-products') {
+                const valuableProducts = [...products]
+                    .sort((a, b) => (b.quantity * b.price) - (a.quantity * a.price))
+                    .slice(0, 5);
+                
+                html += '<table><thead><tr><th>المنتج</th><th>الكمية</th><th>السعر</th><th>القيمة الإجمالية</th></tr></thead><tbody>';
+                
+                valuableProducts.forEach(product => {
+                    html += `<tr>
+                        <td>${product.name}</td>
+                        <td>${product.quantity} ${product.unit}</td>
+                        <td>${product.price.toFixed(2)} ج.م</td>
+                        <td>${(product.quantity * product.price).toFixed(2)} ج.م</td>
+                    </tr>`;
+                });
+                
+                html += '</tbody></table>';
+            }
+            
+            reportResults.innerHTML = html;
+        }
+        
+        // عرض معاملات تاريخ محدد
+        function showTransactions() {
+            const selectedDate = new Date(document.getElementById('transactions-date').value);
+            const nextDate = new Date(selectedDate);
+            nextDate.setDate(nextDate.getDate() + 1);
+            
+            const dailyMovements = movements.filter(m => {
+                const movementDate = new Date(m.date);
+                return movementDate >= selectedDate && movementDate < nextDate;
+            });
+            
+            const tbody = transactionsTable.querySelector('tbody');
+            tbody.innerHTML = '';
+            
+            if (dailyMovements.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8">لا توجد معاملات في هذا التاريخ</td></tr>';
+                return;
+            }
+            
+            dailyMovements.forEach(movement => {
+                const row = document.createElement('tr');
+                const date = new Date(movement.date);
+                const formattedDate = formatDate(date);
+                const formattedTime = formatTime(date);
+                
+                row.innerHTML = `
+                    <td>${formattedDate}</td>
+                    <td>${formattedTime}</td>
+                    <td>${movement.productName}</td>
+                    <td>${movement.type === 'in' ? 'وارد' : 'صادر'}</td>
+                    <td>${movement.quantity} ${movement.unit}</td>
+                    <td>${movement.storekeeper}</td>
+                    <td>${movement.recipient || '-'}</td>
+                    <td>${movement.shiftManager}</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // عرض قسم معين وإخفاء الآخرين
+        function showSection(sectionId) {
+            document.getElementById('inventory-section').style.display = 'none';
+            document.getElementById('low-stock-section').style.display = 'none';
+            document.getElementById('movement-section').style.display = 'none';
+            document.getElementById('add-product-section').style.display = 'none';
+            document.getElementById('reports-section').style.display = 'none';
+            document.getElementById('transactions-section').style.display = 'none';
+            document.getElementById('admin-section').style.display = 'none';
+            
+            document.getElementById(`${sectionId}-section`).style.display = 'block';
+            
+            if (sectionId === 'reports') {
+                generateReport();
+            } else if (sectionId === 'transactions') {
+                showTransactions();
+            } else if (sectionId === 'add-product') {
+                // إنشاء باركود تلقائي عند فتح قسم إضافة المنتج
+                if (!document.getElementById('product-barcode').value) {
+                    generateBarcode();
+                }
+            } else if (sectionId === 'inventory') {
+                updateLowStockTable();
+            }
+        }
+        
+        // حفظ البيانات في localStorage
+        function saveData() {
+            localStorage.setItem('restaurantProducts', JSON.stringify(products));
+            localStorage.setItem('restaurantMovements', JSON.stringify(movements));
+            localStorage.setItem('restaurantUsers', JSON.stringify(users));
+            localStorage.setItem('restaurantStorekeepers', JSON.stringify(storekeepers));
+            localStorage.setItem('restaurantShiftManagers', JSON.stringify(shiftManagers));
+            localStorage.setItem('restaurantUnits', JSON.stringify(units));
+        }
+        
+        // وظائف مساعدة للتواريخ
+        function formatDate(date) {
+            return date.toLocaleDateString('ar-EG');
+        }
+        
+        function formatTime(date) {
+            return date.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+        }
+        
+        function formatDateWithTime(date) {
+            return `${formatDate(date)} - ${formatTime(date)}`;
+        }
+    </script>
+</body>
+</html>
